@@ -1,0 +1,104 @@
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #f7fff9, #eefaf2);
+}
+
+.register-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 40px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+}
+
+.register-logo {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 25px;
+}
+
+.register-logo span {
+  color: #16a34a;
+}
+
+.register-card h1 {
+  text-align: center;
+  font-size: 28px;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.register-subtitle {
+  text-align: center;
+  color: #667085;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.register-card .input-group {
+  margin-bottom: 18px;
+}
+
+.register-card .input-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.register-card .input-group input {
+  width: 100%;
+  padding: 14px 15px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  outline: none;
+  font-size: 15px;
+}
+
+.register-card .input-group input:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.register-submit {
+  width: 100%;
+  padding: 15px;
+  margin-top: 8px;
+  border-radius: 8px;
+  background: #16a34a;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.register-submit:hover {
+  background: #15803d;
+}
+
+.login-text {
+  text-align: center;
+  margin-top: 24px;
+  color: #667085;
+  font-size: 14px;
+}
+
+.login-text a {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+@media (max-width: 500px) {
+  .register-card {
+    padding: 30px 22px;
+  }
+}

@@ -1,0 +1,541 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f7f9fc;
+  color: #172033;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+/* ================= NAVBAR ================= */
+
+.navbar {
+  width: 100%;
+  height: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 7%;
+  background: #ffffff;
+  border-bottom: 1px solid #e9edf3;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 27px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.logo span {
+  color: #16a34a;
+}
+
+.nav-links {
+  display: flex;
+  gap: 35px;
+}
+
+.nav-links a {
+  color: #4b5563;
+  font-size: 15px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.nav-links a:hover {
+  color: #16a34a;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.login-btn {
+  background: transparent;
+  color: #172033;
+  padding: 11px 20px;
+  font-weight: 600;
+}
+
+.register-btn {
+  background: #16a34a;
+  color: white;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.register-btn:hover {
+  background: #15803d;
+}
+
+/* ================= HERO ================= */
+
+.hero {
+  min-height: 620px;
+  padding: 80px 7%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 70px;
+  background: linear-gradient(135deg, #f7fff9, #ffffff);
+}
+
+.hero-content {
+  max-width: 650px;
+}
+
+.welcome {
+  color: #16a34a;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font-size: 65px;
+  line-height: 1.08;
+  color: #111827;
+  margin-bottom: 25px;
+}
+
+.hero h1 span {
+  color: #16a34a;
+}
+
+.hero-text {
+  max-width: 570px;
+  color: #667085;
+  font-size: 18px;
+  line-height: 1.7;
+  margin-bottom: 35px;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.primary-btn {
+  padding: 15px 28px;
+  border-radius: 8px;
+  background: #16a34a;
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.secondary-btn {
+  padding: 15px 28px;
+  border-radius: 8px;
+  background: white;
+  color: #172033;
+  border: 1px solid #d8dee8;
+  font-weight: 700;
+}
+
+/* ================= WALLET CARD ================= */
+
+.hero-card {
+  width: 360px;
+  padding: 30px;
+  border-radius: 20px;
+  background: #172033;
+  color: white;
+  box-shadow: 0 25px 60px rgba(23, 32, 51, 0.2);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  color: #cbd5e1;
+  font-size: 14px;
+  margin-bottom: 35px;
+}
+
+.hero-card h2 {
+  font-size: 35px;
+  margin-bottom: 8px;
+}
+
+.hero-card p {
+  color: #94a3b8;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.hero-card button {
+  width: 100%;
+  padding: 14px;
+  background: #16a34a;
+  color: white;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+/* ================= SERVICES ================= */
+
+.services {
+  padding: 100px 7%;
+  background: white;
+}
+
+.section-heading {
+  text-align: center;
+  margin-bottom: 55px;
+}
+
+.section-heading p,
+.section-label {
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+
+.section-heading h2 {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.section-heading span {
+  color: #667085;
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+.service-card {
+  padding: 30px 25px;
+  background: #f8fafc;
+  border: 1px solid #e8edf3;
+  border-radius: 14px;
+  transition: 0.3s;
+}
+
+.service-card:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+.service-icon {
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dcfce7;
+  border-radius: 12px;
+  font-size: 25px;
+  margin-bottom: 22px;
+}
+
+.service-card h3 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.service-card p {
+  color: #667085;
+  line-height: 1.6;
+  font-size: 14px;
+  margin-bottom: 22px;
+}
+
+.service-card a {
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* ================= ABOUT ================= */
+
+.about {
+  padding: 90px 7%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  background: #f7f9fc;
+}
+
+.about h2 {
+  font-size: 42px;
+}
+
+.about > p {
+  color: #667085;
+  line-height: 1.8;
+  font-size: 17px;
+}
+
+/* ================= CTA ================= */
+
+.cta {
+  text-align: center;
+  padding: 90px 20px;
+  background: #172033;
+  color: white;
+}
+
+.cta h2 {
+  font-size: 40px;
+  margin-bottom: 15px;
+}
+
+.cta p {
+  color: #cbd5e1;
+  margin-bottom: 30px;
+}
+
+.cta button {
+  padding: 15px 28px;
+  border-radius: 8px;
+  background: #16a34a;
+  color: white;
+  font-weight: 700;
+}
+
+/* ================= FOOTER ================= */
+
+footer {
+  padding: 30px 7%;
+  background: #111827;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+footer .logo {
+  color: white;
+}
+
+footer p {
+  font-size: 13px;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 900px) {
+  .nav-links {
+    display: none;
+  }
+
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    padding-top: 60px;
+  }
+
+  .hero-text {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+
+  .service-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 0 5%;
+  }
+
+  .register-btn {
+    padding: 10px 13px;
+  }
+
+  .hero {
+    padding: 60px 5%;
+  }
+
+  .hero h1 {
+    font-size: 43px;
+  }
+
+  .hero-card {
+    width: 100%;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+  }
+
+  .service-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .services,
+  .about {
+    padding: 70px 5%;
+  }
+
+  .section-heading h2,
+  .about h2,
+  .cta h2 {
+    font-size: 32px;
+  }
+
+  footer {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+}
+/* SERVICES */
+.services {
+  padding: 80px 8%;
+  background: #f8fff9;
+  text-align: center;
+}
+
+.section-header {
+  max-width: 650px;
+  margin: 0 auto 45px;
+}
+
+.section-tag {
+  color: #0bbf5b;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.section-header h2 {
+  font-size: 38px;
+  margin-bottom: 15px;
+  color: #111827;
+}
+
+.section-header p {
+  color: #6b7280;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.service-card {
+  background: white;
+  padding: 30px 20px;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  transition: 0.3s;
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+}
+
+.service-icon {
+  font-size: 42px;
+  margin-bottom: 15px;
+}
+
+.service-card h3 {
+  margin-bottom: 10px;
+  color: #111827;
+}
+
+.service-card p {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.service-card button {
+  border: none;
+  background: #0bbf5b;
+  color: white;
+  padding: 11px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.service-card button:hover {
+  background: #099b4a;
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .services {
+    padding: 60px 5%;
+  }
+
+  .section-header h2 {
+    font-size: 30px;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.service-button {
+  display: inline-block;
+  background: #16a34a;
+  color: white;
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.service-button:hover {
+  background: #15803d;
+  transform: translateY(-2px);
+}

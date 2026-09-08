@@ -1,0 +1,73 @@
+.electricity-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px;
+  background: #f8fff9;
+}
+
+.electricity-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 28px 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.electricity-card h1 {
+  text-align: center;
+  margin-bottom: 6px;
+  color: #111827;
+  font-size: 32px;
+
+}
+
+.electricity-card > p {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.electricity-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.electricity-card label {
+  font-weight: 600;
+  color: #344054;
+  margin-top: 8px;
+}
+
+.electricity-card input,
+.electricity-card select {
+  padding: 14px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+}
+
+.electricity-card input:focus,
+.electricity-card select:focus {
+  border-color: #16a34a;
+}
+
+.electricity-card button {
+  margin-top: 20px;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: #16a34a;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.electricity-card button:hover {
+  background: #15803d;
+}
