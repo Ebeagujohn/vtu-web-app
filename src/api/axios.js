@@ -1,11 +1,12 @@
 import axios from "axios";
 
-// 1. Define base server address
+// 🌟 Reads live API URL from environment variables on Vercel, falls back to localhost for dev
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+
 const API = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: baseURL,
 });
 
-// 2. Request Interceptor: Automatically attach DRF Auth Token to EVERY request
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("noha_user_token");
