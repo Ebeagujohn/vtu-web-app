@@ -17,7 +17,8 @@ from .views import (
     api_change_transaction_pin,
     api_profile_picture,
     api_change_password,
-    api_upgrade_reseller
+    api_upgrade_reseller,
+    api_demo_fund_wallet
 )
 
 urlpatterns = [
