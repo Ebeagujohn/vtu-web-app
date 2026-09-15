@@ -262,8 +262,19 @@ def api_buy_airtime(request):
     if profile.balance < amount:
         return Response({"error": "Insufficient wallet balance."}, status=status.HTTP_400_BAD_REQUEST)
 
+    # 🌟 FETCH KEYS FROM RENDER ENVIRONMENT
+    USER_ID = os.environ.get("CLUBKONNECT_USER_ID")
+    API_KEY = os.environ.get("CLUBKONNECT_API_KEY")
+
+    # 🛑 STRICT GUARD: Stop immediately if Render keys are missing!
+    if not USER_ID or not API_KEY:
+        return Response({
+            "error": "ClubKonnect API keys are missing on Render Environment Variables. Please add CLUBKONNECT_USER_ID and CLUBKONNECT_API_KEY on Render Dashboard."
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     tx_reference = f"AIRT-{uuid.uuid4().hex[:10].upper()}"
 
+    # Atomic Debit
     with transaction.atomic():
         balance_before = profile.balance
         balance_after = balance_before - amount
@@ -288,38 +299,32 @@ def api_buy_airtime(request):
             }
         )
 
-    # 🌟 REAL CLUBKONNECT TELECOM DISPATCH
-    USER_ID = os.environ.get("CLUBKONNECT_USER_ID")
-    API_KEY = os.environ.get("CLUBKONNECT_API_KEY")
+    # 🌟 CALL CLUBKONNECT LIVE API
+    network_map = {
+        'mtn': '01',
+        'glo': '02',
+        '9mobile': '03',
+        'airtel': '04'
+    }
+    net_code = network_map.get(str(network).lower(), '01')
+    
+    ck_url = f"https://www.clubkonnect.com/API/Airtime/?UserID={USER_ID}&APIKey={API_KEY}&MobileNetwork={net_code}&Amount={int(amount)}&MobileNumber={phone_number}&RequestID={tx_reference}"
 
-    if USER_ID and API_KEY:
-        network_map = {
-            'mtn': '01',
-            'glo': '02',
-            '9mobile': '03',
-            'airtel': '04'
-        }
-        net_code = network_map.get(str(network).lower(), '01')
+    try:
+        ck_res = requests.get(ck_url, timeout=25)
+        res_json = ck_res.json()
         
-        ck_url = f"https://www.clubkonnect.com/API/Airtime/?UserID={USER_ID}&APIKey={API_KEY}&MobileNetwork={net_code}&Amount={int(amount)}&MobileNumber={phone_number}&RequestID={tx_reference}"
-
-        try:
-            ck_res = requests.get(ck_url, timeout=25)
-            print(f"📡 CLUBKONNECT RAW RESPONSE: {ck_res.text}")
-            
-            res_json = ck_res.json()
-            status_code = str(res_json.get("statuscode", res_json.get("status", "")))
-            
-            if status_code in ["100", "200", "ORDER_RECEIVED", "SUCCESS"]:
-                provider_success = True
-            else:
-                provider_success = False
-        except Exception as e:
-            print(f"❌ ClubKonnect API Exception: {str(e)}")
+        status_code = str(res_json.get("statuscode", res_json.get("status", "")))
+        
+        if status_code in ["100", "200", "ORDER_RECEIVED", "SUCCESS"]:
+            provider_success = True
+        else:
+            # ClubKonnect returned an error (e.g. low balance on ClubKonnect or invalid key)
             provider_success = False
-    else:
-        print("⚠️ CLUBKONNECT_USER_ID or CLUBKONNECT_API_KEY missing from environment variables! Running in simulation mode.")
-        provider_success = True
+            error_msg = res_json.get("msg", res_json.get("status", "ClubKonnect order rejected."))
+    except Exception as e:
+        provider_success = False
+        error_msg = str(e)
 
     if provider_success:
         tx_record.status = 'SUCCESSFUL'
@@ -332,10 +337,16 @@ def api_buy_airtime(request):
             "new_balance": str(profile.balance)
         }, status=status.HTTP_200_OK)
     else:
-        tx_record.status = 'FAILED'
-        tx_record.save()
+        # Refund user wallet if ClubKonnect failed
+        with transaction.atomic():
+            profile.balance += amount
+            profile.save()
+            tx_record.status = 'FAILED'
+            tx_record.description += " (Failed & Refunded)"
+            tx_record.save()
+
         return Response({
-            "error": "Provider failed to deliver airtime. Transaction is under review."
+            "error": f"ClubKonnect failed: {error_msg}. Your ₦{amount} has been refunded to your wallet."
         }, status=status.HTTP_502_BAD_GATEWAY)
 
 
