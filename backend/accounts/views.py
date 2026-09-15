@@ -895,3 +895,39 @@ def api_upgrade_reseller(request):
         "new_tier": "RESELLER",
         "new_balance": str(profile.balance)
     }, status=status.HTTP_200_OK)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_demo_fund_wallet(request):
+    """
+    Demo/Test Endpoint: Instantly credits ₦10,000 to the requesting user's wallet.
+    """
+    user = request.user
+    profile = Profile.objects.get(user=user)
+    amount = Decimal('10000.00')
+
+    with transaction.atomic():
+        balance_before = profile.balance
+        balance_after = balance_before + amount
+
+        profile.balance = balance_after
+        profile.save()
+
+        tx_ref = f"DEMO-{uuid.uuid4().hex[:8].upper()}"
+        Transaction.objects.create(
+            user=user,
+            transaction_type='CREDIT',
+            service_type='WALLET_FUNDING',
+            amount=amount,
+            fee=Decimal('0.00'),
+            balance_before=balance_before,
+            balance_after=balance_after,
+            reference=tx_ref,
+            description="Instant Demo Wallet Top-Up (₦10,000.00)",
+            status='SUCCESSFUL'
+        )
+
+    return Response({
+        "status": "success",
+        "message": f"Successfully credited ₦{amount:.2f} demo funds to your wallet!",
+        "new_balance": str(profile.balance)
+    }, status=status.HTTP_200_OK)
