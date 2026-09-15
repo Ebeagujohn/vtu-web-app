@@ -186,7 +186,7 @@ def api_demo_fund_wallet(request):
         amount = Decimal('10000.00')
 
         with transaction.atomic():
-            profile = Profile.objects.select_for_update().get(id=profile.id)
+            profile = Profile.objects.select_for_update().get(id=profile.pk)
 
             balance_before = profile.balance
             balance_after = balance_before + amount
@@ -288,7 +288,7 @@ def api_buy_airtime(request):
             }
         )
 
-    # 🌟 REAL CLUBKONNECT TELECOM DISPATCH (or Demo Fallback)
+    # 🌟 REAL CLUBKONNECT TELECOM DISPATCH
     USER_ID = os.environ.get("CLUBKONNECT_USER_ID")
     API_KEY = os.environ.get("CLUBKONNECT_API_KEY")
 
@@ -305,18 +305,20 @@ def api_buy_airtime(request):
 
         try:
             ck_res = requests.get(ck_url, timeout=25)
-            res_json = ck_res.json()
+            print(f"📡 CLUBKONNECT RAW RESPONSE: {ck_res.text}")
             
+            res_json = ck_res.json()
             status_code = str(res_json.get("statuscode", res_json.get("status", "")))
+            
             if status_code in ["100", "200", "ORDER_RECEIVED", "SUCCESS"]:
                 provider_success = True
             else:
                 provider_success = False
         except Exception as e:
-            print(f"ClubKonnect API Error: {str(e)}")
+            print(f"❌ ClubKonnect API Exception: {str(e)}")
             provider_success = False
     else:
-        # Demo simulation when environment keys are not configured
+        print("⚠️ CLUBKONNECT_USER_ID or CLUBKONNECT_API_KEY missing from environment variables! Running in simulation mode.")
         provider_success = True
 
     if provider_success:
