@@ -262,6 +262,14 @@ def api_buy_airtime(request):
     if profile.balance < amount:
         return Response({"error": "Insufficient wallet balance."}, status=status.HTTP_400_BAD_REQUEST)
 
+    USER_ID = os.environ.get("CLUBKONNECT_USER_ID")
+    API_KEY = os.environ.get("CLUBKONNECT_API_KEY")
+
+    if not USER_ID or not API_KEY:
+        return Response({
+            "error": "ClubKonnect API keys are missing on Render Environment. Add CLUBKONNECT_USER_ID and CLUBKONNECT_API_KEY."
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     tx_reference = f"AIRT-{uuid.uuid4().hex[:10].upper()}"
 
     # Atomic Ledger Debit
@@ -289,55 +297,51 @@ def api_buy_airtime(request):
             }
         )
 
-    # 🌟 REAL CLUBKONNECT TELECOM DISPATCH
-    USER_ID = os.environ.get("CLUBKONNECT_USER_ID")
-    API_KEY = os.environ.get("CLUBKONNECT_API_KEY")
+    # 🌟 EXACT OFFICIAL CLUBKONNECT API ENDPOINT
+    network_map = {
+        'mtn': '01',
+        'glo': '02',
+        '9mobile': '03',
+        'airtel': '04'
+    }
+    net_code = network_map.get(str(network).lower(), '01')
+    
+    # Notice: /API/AirtimeV1.asp (Exact combination)
+    ck_url = f"https://www.clubkonnect.com/API/AirtimeV1.asp?UserID={USER_ID.strip()}&APIKey={API_KEY.strip()}&MobileNetwork={net_code}&Amount={int(amount)}&MobileNumber={phone_number}&RequestID={tx_reference}"
 
-    if USER_ID and API_KEY:
-        network_map = {
-            'mtn': '01',
-            'glo': '02',
-            '9mobile': '03',
-            'airtel': '04'
-        }
-        net_code = network_map.get(str(network).lower(), '01')
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/javascript, */*"
+    }
+
+    error_msg = ""
+    provider_success = False
+
+    try:
+        ck_res = requests.get(ck_url, headers=headers, timeout=25)
+        print(f"📡 CLUBKONNECT RESPONSE ({ck_res.status_code}): {ck_res.text}")
         
-        # 🌟 CORRECT CLUBKONNECT .ASP ENDPOINT SCRIPT
-        ck_url = f"https://www.clubkonnect.com/APIAirtimeV1.asp?UserID={USER_ID.strip()}&APIKey={API_KEY.strip()}&MobileNetwork={net_code}&Amount={int(amount)}&MobileNumber={phone_number}&RequestID={tx_reference}"
-
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json, text/javascript, */*"
-        }
-
-        error_msg = ""
         try:
-            ck_res = requests.get(ck_url, headers=headers, timeout=25)
-            print(f"📡 CLUBKONNECT RESPONSE ({ck_res.status_code}): {ck_res.text[:300]}")
+            res_json = ck_res.json()
+            status_code = str(res_json.get("statuscode", res_json.get("status", res_json.get("status_code", ""))))
             
-            try:
-                res_json = ck_res.json()
-                status_code = str(res_json.get("statuscode", res_json.get("status", res_json.get("status_code", ""))))
-                
-                if status_code in ["100", "200", "ORDER_RECEIVED", "SUCCESS"]:
-                    provider_success = True
-                else:
-                    provider_success = False
-                    error_msg = res_json.get("msg", res_json.get("message", res_json.get("status", f"Code {status_code}")))
-            except Exception:
-                raw_text = ck_res.text.strip()
-                if "ORDER_RECEIVED" in raw_text or "SUCCESS" in raw_text or "100" in raw_text:
-                    provider_success = True
-                else:
-                    provider_success = False
-                    error_msg = f"Response: {raw_text[:120]}"
-        except Exception as e:
-            print(f"❌ ClubKonnect Exception: {str(e)}")
-            provider_success = False
-            error_msg = str(e)
-    else:
-        provider_success = True
-        error_msg = ""
+            # Codes 100, 200 or status ORDER_RECEIVED mean ClubKonnect accepted the purchase
+            if status_code in ["100", "200", "ORDER_RECEIVED", "SUCCESS"]:
+                provider_success = True
+            else:
+                provider_success = False
+                error_msg = res_json.get("msg", res_json.get("message", res_json.get("status", f"Code: {status_code}")))
+        except Exception:
+            raw_text = ck_res.text.strip()
+            if "ORDER_RECEIVED" in raw_text or "SUCCESS" in raw_text or '"statuscode":"100"' in raw_text or '"statuscode":"200"' in raw_text:
+                provider_success = True
+            else:
+                provider_success = False
+                error_msg = f"Raw Response: {raw_text[:120]}"
+    except Exception as e:
+        print(f"❌ ClubKonnect Request Error: {str(e)}")
+        provider_success = False
+        error_msg = str(e)
 
     if provider_success:
         tx_record.status = 'SUCCESSFUL'
@@ -350,7 +354,7 @@ def api_buy_airtime(request):
             "new_balance": str(profile.balance)
         }, status=status.HTTP_200_OK)
     else:
-        # Auto-Refund Wallet on Failure
+        # Auto-Refund NOHASub Wallet on Failure
         with transaction.atomic():
             profile.balance += amount
             profile.save()
@@ -359,7 +363,7 @@ def api_buy_airtime(request):
             tx_record.save()
 
         return Response({
-            "error": f"ClubKonnect: {error_msg}. Your ₦{amount} has been refunded to your wallet."
+            "error": f"ClubKonnect Error: {error_msg}. Your ₦{amount} has been refunded to your wallet."
         }, status=status.HTTP_502_BAD_GATEWAY)
 
 
