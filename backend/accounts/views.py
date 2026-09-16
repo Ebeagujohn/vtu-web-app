@@ -302,43 +302,40 @@ def api_buy_airtime(request):
         }
         net_code = network_map.get(str(network).lower(), '01')
         
-        ck_url = f"https://www.clubkonnect.com/API/Airtime/?UserID={USER_ID.strip()}&APIKey={API_KEY.strip()}&MobileNetwork={net_code}&Amount={int(amount)}&MobileNumber={phone_number}&RequestID={tx_reference}"
+        # 🌟 CORRECT CLUBKONNECT .ASP ENDPOINT SCRIPT
+        ck_url = f"https://www.clubkonnect.com/APIAirtimeV1.asp?UserID={USER_ID.strip()}&APIKey={API_KEY.strip()}&MobileNetwork={net_code}&Amount={int(amount)}&MobileNumber={phone_number}&RequestID={tx_reference}"
 
-        # 🌟 Browser User-Agent Header to bypass Cloudflare block
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json"
+            "Accept": "application/json, text/javascript, */*"
         }
 
         error_msg = ""
         try:
             ck_res = requests.get(ck_url, headers=headers, timeout=25)
-            print(f"📡 CLUBKONNECT RESPONSE ({ck_res.status_code}): {ck_res.text[:200]}")
+            print(f"📡 CLUBKONNECT RESPONSE ({ck_res.status_code}): {ck_res.text[:300]}")
             
-            # Safely parse JSON or text
             try:
                 res_json = ck_res.json()
-                status_code = str(res_json.get("statuscode", res_json.get("status", "")))
+                status_code = str(res_json.get("statuscode", res_json.get("status", res_json.get("status_code", ""))))
                 
                 if status_code in ["100", "200", "ORDER_RECEIVED", "SUCCESS"]:
                     provider_success = True
                 else:
                     provider_success = False
-                    error_msg = res_json.get("msg", res_json.get("status", f"ClubKonnect code: {status_code}"))
+                    error_msg = res_json.get("msg", res_json.get("message", res_json.get("status", f"Code {status_code}")))
             except Exception:
-                # Response was plain text or HTML instead of JSON
-                provider_success = False
                 raw_text = ck_res.text.strip()
-                if "ORDER_RECEIVED" in raw_text or "SUCCESS" in raw_text:
+                if "ORDER_RECEIVED" in raw_text or "SUCCESS" in raw_text or "100" in raw_text:
                     provider_success = True
                 else:
-                    error_msg = f"ClubKonnect response: {raw_text[:120]}"
+                    provider_success = False
+                    error_msg = f"Response: {raw_text[:120]}"
         except Exception as e:
-            print(f"❌ ClubKonnect Request Exception: {str(e)}")
+            print(f"❌ ClubKonnect Exception: {str(e)}")
             provider_success = False
             error_msg = str(e)
     else:
-        # Fallback to simulation mode if keys are not set
         provider_success = True
         error_msg = ""
 
