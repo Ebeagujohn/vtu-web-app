@@ -28,7 +28,46 @@ def build_absolute_media_url(request, file_field):
 # AUTH
 # ==========================================
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def api_user_register(request):
+    translator = RegisterSerializer(data=request.data)
 
+    if translator.is_valid():
+        user = translator.save()
+        token, _ = Token.objects.get_or_create(user=user)
+
+        # Automatic ₦10,000 Welcome Bonus
+        profile, _ = Profile.objects.get_or_create(user=user)
+        welcome_amount = Decimal('10000.00')
+
+        with transaction.atomic():
+            balance_before = profile.balance
+            balance_after = balance_before + welcome_amount
+            profile.balance = balance_after
+            profile.save()
+
+            Transaction.objects.create(
+                user=user,
+                transaction_type='CREDIT',
+                service_type='WALLET_FUNDING',
+                amount=welcome_amount,
+                fee=Decimal('0.00'),
+                balance_before=balance_before,
+                balance_after=balance_after,
+                reference=f"BONUS-{uuid.uuid4().hex[:8].upper()}",
+                description="Welcome Bonus — Free Demo Testing Funds",
+                status='SUCCESSFUL',
+                meta_data={"promo": "welcome_bonus_10k"}
+            )
+
+        return Response({
+            "message": "Account created successfully! ₦10,000 welcome bonus credited.",
+            "token": token.key,
+            "username": user.username # type: ignore
+        }, status=status.HTTP_201_CREATED)
+
+    return Response(translator.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
