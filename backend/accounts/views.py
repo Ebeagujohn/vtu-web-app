@@ -16,6 +16,7 @@ from rest_framework.authtoken.models import Token
 
 from .models import Profile, Transaction, ServiceProvider, ServicePlan
 from .serializers import RegisterSerializer
+from .emails import send_welcome_email, send_receipt_email # 🌟 Email Integration Imports
 
 
 def build_absolute_media_url(request, file_field):
@@ -60,6 +61,9 @@ def api_user_register(request):
                 status='SUCCESSFUL',
                 meta_data={"promo": "welcome_bonus_10k"}
             )
+
+        # 🌟 Trigger Welcome Email
+        send_welcome_email(user)
 
         return Response({
             "message": "Account created successfully! ₦10,000 welcome bonus credited.",
@@ -159,7 +163,7 @@ def api_webhook_fund_wallet(request):
         profile.balance = balance_after
         profile.save()
 
-        Transaction.objects.create(
+        tx_record = Transaction.objects.create(
             user=profile.user,
             transaction_type='CREDIT',
             service_type='WALLET_FUNDING',
@@ -171,6 +175,15 @@ def api_webhook_fund_wallet(request):
             description=f"Bank Transfer via {account_number}",
             status='SUCCESSFUL'
         )
+
+    # 🌟 Trigger Wallet Top-up Receipt Email
+    send_receipt_email(
+        user=profile.user,
+        service_type="Wallet Funding",
+        amount=credit_amount,
+        recipient=f"Bank Transfer ({account_number})",
+        reference=reference
+    )
 
     return Response({
         "status": "success",
@@ -275,6 +288,15 @@ def api_buy_airtime(request):
             }
         )
 
+    # 🌟 Trigger Airtime Receipt Email
+    send_receipt_email(
+        user=user,
+        service_type=f"{str(network).upper()} Airtime",
+        amount=amount,
+        recipient=phone_number,
+        reference=tx_reference
+    )
+
     return Response({
         "status": "success",
         "message": f"Successfully recharged ₦{amount} to {phone_number} ({str(network).upper()}).",
@@ -367,6 +389,15 @@ def api_buy_data(request):
                 "provider": "NOHASUB_DISPATCH"
             }
         )
+
+    # 🌟 Trigger Data Receipt Email
+    send_receipt_email(
+        user=user,
+        service_type=f"{plan.provider.name} {plan.name}",
+        amount=charge_amount,
+        recipient=phone_number,
+        reference=tx_reference
+    )
 
     return Response({
         "status": "success",
@@ -462,6 +493,15 @@ def api_buy_cable(request):
             }
         )
 
+    # 🌟 Trigger Cable TV Receipt Email
+    send_receipt_email(
+        user=user,
+        service_type=f"{plan.provider.name} {plan.name}",
+        amount=charge_amount,
+        recipient=f"IUC: {iuc_number}",
+        reference=tx_reference
+    )
+
     return Response({
         "status": "success",
         "message": f"Successfully activated {plan.provider.name} {plan.name} for IUC {iuc_number}.",
@@ -521,6 +561,7 @@ def api_buy_electricity(request):
     tx_reference = f"ELEC-{uuid.uuid4().hex[:10].upper()}"
 
     mock_token = None
+    units_gen = f"{amount / Decimal('75.00'):.1f} kWh"
     if meter_type == 'PREPAID':
         raw_digits = "".join([str(random.randint(0, 9)) for _ in range(20)])
         mock_token = f"{raw_digits[:4]}-{raw_digits[4:8]}-{raw_digits[8:12]}-{raw_digits[12:16]}-{raw_digits[16:]}"
@@ -548,9 +589,20 @@ def api_buy_electricity(request):
                 "meter_number": meter_number,
                 "phone_number": phone_number,
                 "meter_token": mock_token,
-                "units": f"{amount / Decimal('75.00'):.1f} kWh"
+                "units": units_gen
             }
         )
+
+    # 🌟 Trigger Electricity Receipt Email (Includes token and units)
+    send_receipt_email(
+        user=user,
+        service_type=f"{provider.name} ({meter_type})",
+        amount=amount,
+        recipient=f"Meter: {meter_number}",
+        reference=tx_reference,
+        token=mock_token,
+        units=units_gen
+    )
 
     payload = {
         "status": "success",
@@ -754,6 +806,7 @@ def api_upgrade_reseller(request):
         profile.user_tier = 'RESELLER'
         profile.save()
 
+        tx_ref = f"UPG-{uuid.uuid4().hex[:10].upper()}"
         Transaction.objects.create(
             user=user,
             transaction_type='DEBIT',
@@ -761,10 +814,19 @@ def api_upgrade_reseller(request):
             amount=UPGRADE_FEE,
             balance_before=balance_before,
             balance_after=balance_after,
-            reference=f"UPG-{uuid.uuid4().hex[:10].upper()}",
+            reference=tx_ref,
             description="Account Upgrade to Reseller Tier",
             status='SUCCESSFUL'
         )
+
+    # 🌟 Trigger Reseller Upgrade Receipt
+    send_receipt_email(
+        user=user,
+        service_type="Account Tier Upgrade (Reseller)",
+        amount=UPGRADE_FEE,
+        recipient=user.username,
+        reference=tx_ref
+    )
 
     return Response({
         "message": "Congratulations! You are now a Reseller.",
