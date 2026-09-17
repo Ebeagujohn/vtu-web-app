@@ -126,17 +126,7 @@ export default function Wallet() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* ⚡ INSTANT DEMO TOP-UP BUTTON */}
-          <button
-            onClick={handleDemoTopUp}
-            disabled={demoFunding}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"
-            title="Add ₦10,000 Demo Funds for Testing"
-          >
-            <Zap size={16} />
-            {demoFunding ? "Crediting..." : "+ Add ₦10,000 Demo Funds"}
-          </button>
-
+        
           <Link
             to="/app/history"
             className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"

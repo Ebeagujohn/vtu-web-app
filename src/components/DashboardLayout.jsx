@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useWallet } from "../context/WalletContext";
+import { OnboardingModal } from "./OnboardingModal"; // 🌟 Added Import
 
 const navItems = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -34,10 +35,28 @@ export default function DashboardLayout() {
   const username = localStorage.getItem("noha_username") || "User";
   const { theme, toggleTheme } = useTheme();
 
-  // 🌟 Live Wallet data from Global Context (updates instantly after purchases)
+  // 🌟 Live Wallet data from Global Context
   const { balance, profilePicture } = useWallet();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  
+  // 🌟 Onboarding State
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // 🌟 Check if user has seen onboarding
+  useEffect(() => {
+    if (username !== "User") {
+      const hasOnboarded = localStorage.getItem(`noha_onboarded_${username}`);
+      if (!hasOnboarded) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [username]);
+
+  const handleCloseOnboarding = () => {
+    localStorage.setItem(`noha_onboarded_${username}`, "true");
+    setShowOnboarding(false);
+  };
 
   // Close mobile menu automatically when resizing to desktop
   useEffect(() => {
@@ -71,6 +90,13 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
+      
+      {/* 🌟 Onboarding Modal Component */}
+      <OnboardingModal 
+        isOpen={showOnboarding} 
+        onClose={handleCloseOnboarding} 
+      />
+
       {/* Desktop Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white transition-colors dark:border-slate-800 dark:bg-slate-900 lg:flex">
         <div className="flex h-16 items-center border-b border-slate-200 px-5 dark:border-slate-800">
@@ -132,7 +158,7 @@ export default function DashboardLayout() {
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-              {/* Live Balance Pill (Auto-refreshes via WalletContext) */}
+              {/* Live Balance Pill */}
               <div className="max-w-[42vw] truncate rounded-full bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 sm:max-w-none sm:px-3 sm:text-sm">
                 {balance === null
                   ? "₦--"
