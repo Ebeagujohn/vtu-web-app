@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Zap, 
   Wallet, 
-  Receipt, 
+  History, 
   ArrowRight, 
   CheckCircle2, 
   Sparkles 
 } from 'lucide-react';
 
 interface OnboardingModalProps {
-  userEmail?: string;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -30,15 +29,15 @@ const SLIDES = [
     desc: "Fund your wallet effortlessly via Bank Transfer, Debit Card, or dedicated Virtual Account numbers with instant credit."
   },
   {
-    icon: Receipt,
+    icon: History,
     color: "text-blue-500 bg-blue-500/10",
-    badge: "Proof & Security",
-    title: "Instant Email Receipts",
-    desc: "Every purchase automatically sends an itemized digital receipt to your registered email address with full transaction tracking."
+    badge: "In-App Proof",
+    title: "Instant In-App Receipts & History",
+    desc: "View itemized digital receipts immediately after every purchase and track your complete spending history anytime from your dashboard."
   }
 ];
 
-export const OnboardingModal: React.FC<OnboardingModalProps> = ({ userEmail, isOpen, onClose }) => {
+export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   if (!isOpen) return null;
@@ -49,15 +48,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ userEmail, isO
     if (currentSlide < SLIDES.length - 1) {
       setCurrentSlide(prev => prev + 1);
     } else {
-      handleComplete();
+      onClose();
     }
-  };
-
-  const handleComplete = () => {
-    if (userEmail) {
-      localStorage.setItem(`vtu_onboarded_${userEmail}`, 'true');
-    }
-    onClose();
   };
 
   return (
@@ -69,11 +61,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ userEmail, isO
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-emerald-500" />
             <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              Getting Started
+              Welcome to NOHASub
             </span>
           </div>
           <button 
-            onClick={handleComplete}
+            onClick={onClose}
             className="text-xs font-semibold text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition"
           >
             Skip
@@ -132,7 +124,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ userEmail, isO
           >
             {currentSlide === SLIDES.length - 1 ? (
               <>
-                <span>Go to Dashboard</span>
+                <span>Get Started</span>
                 <CheckCircle2 className="h-4 w-4" />
               </>
             ) : (
