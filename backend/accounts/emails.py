@@ -1,9 +1,60 @@
+import threading
+import requests
+import os
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.html import strip_tags
 
+# 🌟 Get your Free Resend API Key from https://resend.com (3,000 free emails/month)
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+
+
+def _send_email_worker(subject, html_content, recipient_email):
+    """
+    Executes in a background thread so it NEVER blocks Django or Gunicorn.
+    """
+    if not recipient_email:
+        return
+
+    plain_content = strip_tags(html_content)
+
+    # 1️⃣ Option A: Resend HTTP API (Recommended for Render — uses HTTPS Port 443, never blocked)
+    if RESEND_API_KEY:
+        try:
+            requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {RESEND_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": "NOHASub <onboarding@resend.dev>",
+                    "to": [recipient_email],
+                    "subject": subject,
+                    "html": html_content,
+                },
+                timeout=10,
+            )
+            return
+        except Exception as e:
+            print(f"Resend HTTP API failed: {e}")
+
+    # 2️⃣ Option B: Django Standard SMTP (Fallback)
+    try:
+        send_mail(
+            subject=subject,
+            message=plain_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[recipient_email],
+            html_message=html_content,
+            fail_silently=True,
+        )
+    except Exception as e:
+        print(f"SMTP Email send failed: {e}")
+
+
 def send_welcome_email(user):
-    """Sends immediate welcome email upon user registration."""
+    """Triggers welcome email in background thread (0ms API delay)."""
     if not user.email:
         return
 
@@ -24,23 +75,18 @@ def send_welcome_email(user):
         <p style="font-size: 12px; color: #94a3b8; text-align: center;">© NOHASub. All rights reserved.</p>
     </div>
     """
-    plain_content = strip_tags(html_content)
 
-    try:
-        send_mail(
-            subject=subject,
-            message=plain_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_content,
-            fail_silently=True, # Prevents email issues from breaking registration
-        )
-    except Exception as e:
-        print(f"Failed to send welcome email: {e}")
+    # 🌟 RUN IN BACKGROUND THREAD — DOES NOT BLOCK API RESPONSE
+    thread = threading.Thread(
+        target=_send_email_worker,
+        args=(subject, html_content, user.email)
+    )
+    thread.daemon = True
+    thread.start()
 
 
 def send_receipt_email(user, service_type, amount, recipient, reference, token=None, units=None):
-    """Sends formatted digital transaction receipt to user email."""
+    """Triggers transaction receipt in background thread (0ms API delay)."""
     if not user.email:
         return
 
@@ -100,16 +146,11 @@ def send_receipt_email(user, service_type, amount, recipient, reference, token=N
         </p>
     </div>
     """
-    plain_content = strip_tags(html_content)
 
-    try:
-        send_mail(
-            subject=subject,
-            message=plain_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_content,
-            fail_silently=True, # Ensures purchase API succeeds even if email fails
-        )
-    except Exception as e:
-        print(f"Failed to send receipt email: {e}")
+    # 🌟 RUN IN BACKGROUND THREAD — DOES NOT BLOCK API RESPONSE
+    thread = threading.Thread(
+        target=_send_email_worker,
+        args=(subject, html_content, user.email)
+    )
+    thread.daemon = True
+    thread.start()
